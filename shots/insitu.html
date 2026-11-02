@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../web/styles.css">
+<style>
+  html,body{height:auto;background:#EFE6D8}
+  .wall{display:flex;flex-wrap:wrap;gap:18px;padding:16px;align-items:flex-start}
+  .ph{width:390px;height:844px;position:relative;transform-origin:top left;background:var(--bg);overflow:hidden;border-radius:8px}
+  .cap{font:12px/1.6 -apple-system,"Microsoft YaHei",sans-serif;color:#5D5449;padding:0 4px 4px}
+  .wrap{width:390px}
+</style>
+</head>
+<body>
+<div class="wall" id="wall"></div>
+<script type="module">
+const NS = 'http://www.w3.org/2000/svg';
+function f(v){return v.toFixed(1);}
+function petalPath(B, T, w) {
+  const dx=T[0]-B[0], dy=T[1]-B[1], L=Math.hypot(dx,dy)||1;
+  const ux=dx/L, uy=dy/L, nx=-uy, ny=ux;
+  const P=(b,s,ww,al)=>f(b[0]+nx*ww*s+ux*al)+' '+f(b[1]+ny*ww*s+uy*al);
+  return 'M'+f(B[0])+' '+f(B[1])+'C'+P(B,-1,w*.92,w*.18)+' '+P(T,-1,w*.60,-w*.12)+' '+f(T[0])+' '+f(T[1])+
+    'C'+P(T,1,w*.60,-w*.12)+' '+P(B,1,w*.92,w*.18)+' '+f(B[0])+' '+f(B[1])+'Z';
+}
+function lotus(o){
+  const list=[]; const r0=o.r0||12;
+  for(let i=0;i<o.n;i++){
+    const a=-o.amax+2*o.amax*i/(o.n-1), t=Math.abs(a)/o.amax;
+    const R=o.Rmax*(1-o.taper*t), w=o.Wmax*(1-(o.wtaper||.18)*t);
+    const B=[r0*Math.sin(a*Math.PI/180), -r0*Math.cos(a*Math.PI/180)];
+    const T=[R*Math.sin(a*o.k*Math.PI/180), -R*Math.cos(a*o.k*Math.PI/180)];
+    list.push({t, d:petalPath(B,T,w)});
+  }
+  list.sort((p,q)=>q.t-p.t);
+  const body=list.map(p=>{
+    const lv=p.t<0.26?0:(p.t<0.72?1:2);
+    return '<path class="pt t'+lv+'" d="'+p.d+'"/>';
+  }).join('');
+  return '<svg viewBox="40 0 160 124" xmlns="'+NS+'"><g transform="translate(120 116)">'+body+'</g></svg>';
+}
+
+const V = [
+  ['V1 五瓣·宽(30)', {n:5, amax:80, k:.78, Rmax:88, taper:.26, Wmax:30}],
+  ['V2 五瓣·更宽(32)', {n:5, amax:84, k:.74, Rmax:86, taper:.30, Wmax:32}],
+  ['V3 七瓣', {n:7, amax:88, k:.70, Rmax:88, taper:.34, Wmax:24}],
+  ['V4 五瓣·立(28)', {n:5, amax:76, k:.82, Rmax:92, taper:.22, Wmax:28}]
+];
+
+const html = await (await fetch('../web/index.html')).text();
+const doc = new DOMParser().parseFromString(html, 'text/html');
+const detail = doc.getElementById('detail').cloneNode(true);
+detail.classList.add('on');
+
+document.getElementById('wall').innerHTML = V.map(v=>{
+  return '<div class="wrap"><div class="cap">'+v[0]+'</div><div class="ph"></div></div>';
+}).join('');
+
+document.querySelectorAll('.ph').forEach((ph, i) => {
+  const d = detail.cloneNode(true);
+  ph.appendChild(d);
+  d.style.position = 'absolute';
+  d.style.opacity = 1;
+  d.style.transform = 'none';
+  d.querySelector('#centerNum').textContent = '216';
+  d.querySelector('#cToday').textContent = '216';
+  d.querySelector('#cTotal').textContent = '4684';
+  d.querySelector('#cGoal').textContent = '108';
+  d.querySelector('#lotus').innerHTML = lotus(V[i][1]);
+});
+</script>
+</body>
+</html>

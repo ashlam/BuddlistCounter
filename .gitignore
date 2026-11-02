@@ -1,0 +1,25 @@
+# ---- 构建工具链：本地下载的便携 JRE，126MB，不入库 ----
+tools/
+
+# ---- 构建中间产物 ----
+android/output/
+android/project/assets/
+android/project/gen/
+*.idsig
+*.apk.bak
+
+# ---- 签名密钥：不要把签名材料推到公开仓库 ----
+android/jingke.jks
+android/keystore.pass
+
+# ---- 本地验证截图（体积大，按需重跑 shots/*.mjs 生成）----
+shots/*.png
+
+# ---- 系统 / 编辑器 ----
+.DS_Store
+Thumbs.db
+*.log
+node_modules/
+
+# ---- 本地 Agent 状态 ----
+.workbuddy/
